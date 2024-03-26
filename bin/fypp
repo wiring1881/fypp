@@ -1433,6 +1433,11 @@ class Renderer:
                 out, ieval, peval = self._get_called_content(*node[1:7])
                 eval_inds += _shiftinds(ieval, len(output))
                 eval_pos += peval
+
+                # MODIFIED_01: Indent each line of called content with equivelent amount of whitespaces before call directive.
+                if re.search(r"^[\s]+$", output[-1]):
+                    out[0] = out[0].replace("\n", "\n" + output[-1]).rstrip(' ')
+
                 output += out
             elif cmd == 'include':
                 out, ieval, peval = self._get_included_content(*node[1:5])
