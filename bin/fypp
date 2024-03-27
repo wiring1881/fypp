@@ -83,7 +83,11 @@ _ALL_DIRECTIVES_PATTERN = r'''
 (?:^[ \t]*\#!.*\n)+
 |
 # line directive (with optional continuation lines)
-^[ \t]*(?P<ldirtype>[\#\$@]):[ \t]*
+# MODIFIED_02: Whitespace characters before direct call are matched but not grouped,
+#              here's to release it from being matched so that it'll be taken into
+#              account as part of the preceding text.
+#>>> ^[ \t]*(?P<ldirtype>[\#\$@]):[ \t]*
+(?P<ldirtype>^[ \t]*[\#\$]|@):[ \t]*
 (?P<ldir>.+?(?:&[ \t]*\n(?:[ \t]*&)?.*?)*)?[ \t]*\n
 |
 # inline eval directive
