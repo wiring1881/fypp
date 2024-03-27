@@ -1435,8 +1435,9 @@ class Renderer:
                 eval_pos += peval
 
                 # MODIFIED_01: Indent each line of called content with equivelent amount of whitespaces before call directive.
-                if re.search(r"^[\s]+$", output[-1]):
-                    out[0] = out[0].replace("\n", "\n" + output[-1]).rstrip(' ')
+                match = re.match(r"(^|.*\n)( +)$", output[-1])
+                if match:
+                    out[0] = out[0].replace("\n", "\n" + match.group(2)).rstrip(' ')
 
                 output += out
             elif cmd == 'include':
