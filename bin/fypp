@@ -83,11 +83,7 @@ _ALL_DIRECTIVES_PATTERN = r'''
 (?:^[ \t]*\#!.*\n)+
 |
 # line directive (with optional continuation lines)
-# MODIFIED_02: Whitespaces before #/$/@ directives are matched but not grouped. Assert
-#              is added to disable the match before @ directive, so that those
-#              whitespaces can be taken into account as part of the preceding text.
-#>>> ^[ \t]*(?P<ldirtype>[\#\$@]):[ \t]*
-^[ \t]*(?!@)(?P<ldirtype>[\#\$@]):[ \t]*
+^[ \t]*(?P<ldirtype>[\#\$@]):[ \t]*
 (?P<ldir>.+?(?:&[ \t]*\n(?:[ \t]*&)?.*?)*)?[ \t]*\n
 |
 # inline eval directive
@@ -581,6 +577,13 @@ class Parser:
         pos = 0
         for match in _ALL_DIRECTIVES_REGEXP.finditer(txt):
             start, end = match.span()
+
+            # MODIFIED_02: Remove whitespace matches before @ directive and leaves it
+            #              to be taken into account as part of the preceding text.
+            ws = re.match(r"^([ \t]+)@", txt[start:end])
+            if ws:
+                start = start + len(ws.group(1))
+
             if start > pos:
                 endlinenr = linenr + txt.count('\n', pos, start)
                 self._process_text(txt[pos:start], (linenr, endlinenr))
