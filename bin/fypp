@@ -1441,8 +1441,10 @@ class Renderer:
                 eval_inds += _shiftinds(ieval, len(output))
                 eval_pos += peval
 
-                # MODIFIED_01: Indent each line of called content with equivelent amount of whitespaces before call directive.
-                match = re.match(r"(^|.*\n)( +)$", output[-1])
+                # MODIFIED_01: Indent each line of called content with equivelent amount of 
+                # whitespaces before call directive. re.DOTALL is used to match consecutive
+                # new line characters (eg. "{something}\n\n     ")
+                match = re.match(r"(^|.*\n)( +)$", output[-1], re.DOTALL)
                 if match:
                     out[0] = out[0].replace("\n", "\n" + match.group(2)).rstrip(' ')
 
