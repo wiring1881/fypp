@@ -1459,8 +1459,9 @@ class Renderer:
                 #---              (line form).
                 if len(output) > 0:
                     if out[0] == '' or out[0] == '\n':
-                        output[-1] = output[-1].strip(' ')
-                        out.pop(-1)
+                        if len(out) == 2: # For line form ONLY.
+                            output[-1] = output[-1].strip(' ')
+                            out.pop(-1)
 
                 output += out
             elif cmd == 'include':
