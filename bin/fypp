@@ -578,9 +578,9 @@ class Parser:
         for match in _ALL_DIRECTIVES_REGEXP.finditer(txt):
             start, end = match.span()
 
-            #--- MODIFIED_02: Remove whitespace matches before @ directive (line form) and
+            #--- MODIFIED_02: Remove whitespace matches before @$ directive (line form) and
             #---              leaves it to be taken into account as part of the preceding text.
-            ws = re.match(r"^([ \t]+)@:", txt[start:end])
+            ws = re.match(r"^([ \t]+)[@$]:", txt[start:end])
             if ws:
                 start = start + len(ws.group(1))
 
@@ -1422,6 +1422,32 @@ class Renderer:
                 out, ieval, peval = self._get_eval(*node[1:4])
                 eval_inds += _shiftinds(ieval, len(output))
                 eval_pos += peval
+
+                #--- MODIFIED_04: Restrain modification 01 and 03 to perfrom ONLY IF
+                #--- evaluation on macro definition is matched.
+                if re.match(r"^[A-Z0-9_]+\(.*\)$", node[3]):
+                    #--- MODIFIED_01: Indent each line of macro definition content with
+                    #---              equivelent amount of whitespaces before $ directive
+                    #---              (line form). re.DOTALL is used to match consecutive
+                    #---              \n characters (eg. "{something}\n\n     ").
+                    match = None
+                    if len(output) > 0:
+                        match = re.match(r"^(.*?\n)?( +)$", output[-1], re.DOTALL)
+                    if match:
+                        #--- Match those who contain '\n' characters ONLY.
+                        if re.match(r".*\n.*", out[0]):
+                            out[0] = out[0].replace("\n", "\n" + match.group(2)).rstrip(' ')
+
+                    #--- MODIFIED_03: Removes any leading whitespaces of the invoke line
+                    #---              and '\n' in the end if called content is empty or
+                    #---              just a '\n' character when evaluated by $ directive
+                    #---              (line form).
+                    if out[0] == '' or out[0] == '\n':
+                        if len(out) == 2: # Line form.
+                            if len(output) > 0:
+                                output[-1] = output[-1].strip(' ')
+                            out.pop(-1)
+
                 output += out
             elif cmd == 'def':
                 result = self._define_macro(*node[1:6])
@@ -1444,14 +1470,14 @@ class Renderer:
                 #--- MODIFIED_01: Indent each line of called content with equivelent
                 #---              amount of whitespaces before @ directive (line form).
                 #---              re.DOTALL is used to match consecutive \n characters
-                #---              (eg. "{something}\n\n     ")
+                #---              (eg. "{something}\n\n     ").
                 match = None
                 if len(output) > 0:
-                    match = re.match(r"^.*?\n( +)$", output[-1], re.DOTALL)
+                    match = re.match(r"^(.*?\n)?( +)$", output[-1], re.DOTALL)
                 if match:
                     #--- Match those who contain '\n' characters ONLY.
                     if re.match(r".*\n.*", out[0]):
-                        out[0] = out[0].replace("\n", "\n" + match.group(1)).rstrip(' ')
+                        out[0] = out[0].replace("\n", "\n" + match.group(2)).rstrip(' ')
 
                 #--- MODIFIED_03: Removes any leading whitespaces of the invoke line
                 #---              and '\n' in the end if called content is empty or
